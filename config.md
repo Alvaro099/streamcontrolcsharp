@@ -16,6 +16,7 @@ Esta guía detalla cómo configurar, modificar y extender **StreamControlC#**, i
 8. [Cómo Agregar un Campo Nuevo al Proyecto (C# + XAML + JSON + HTML)](#8-cómo-agregar-un-campo-nuevo-al-proyecto-c--xaml--json--html)
 9. [Compilación desde el Código Fuente](#9-compilación-desde-el-código-fuente)
 10. [Solución de Problemas y Límites Conocidos](#10-solución-de-problemas-y-límites-conocidos)
+11. [Créditos y Agradecimientos](#11-créditos-y-agradecimientos)
 
 ---
 
@@ -307,3 +308,10 @@ Luego mueve `publish\StreamControlCSharp.exe` a la raíz del repositorio y elimi
 | **No cargan las banderas** | Nombre de país no reconocido | Usa el código de dos letras ISO (ej. `AR`, `US`, `CL`, `MX`). Consulta `browserfiles/js/countries.js`. |
 | **start.gg responde 401 Unauthorized** | Token inválido o vencido | Genera un token nuevo en el panel de desarrollador de start.gg y actualízalo en `config.json`. |
 | **Pérdida de cambios al cerrar la app** | Los campos de texto no guardan en tiempo real | Presiona `Ctrl + S` o **GUARDAR EN OBS** antes de cerrar la ventana. |
+
+---
+
+## 11. Créditos y Agradecimientos
+
+- **[StreamControl](https://github.com/farpenoodle/StreamControl)** (por [farpenoodle](https://github.com/farpenoodle)): Proyecto original que inspiró la arquitectura, estructura de datos JSON y flujo de control para torneos y emisiones en vivo.
+- **[Shieldbreakers-StreamControl-setup](https://github.com/MiggL/Shieldbreakers-StreamControl-setup)** (por [MiggL](https://github.com/MiggL)): Por el diseño base de las vistas HTML, los scripts de renderizado y animación de canvas con EaselJS/TweenJS, y la librería de banderas de países (`browserfiles/images/GoSquared/`).

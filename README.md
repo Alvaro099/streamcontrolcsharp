@@ -124,6 +124,13 @@ Para instrucciones detalladas sobre:
 
 ---
 
+## Créditos y Agradecimientos
+
+- **[StreamControl](https://github.com/farpenoodle/StreamControl)** (por [farpenoodle](https://github.com/farpenoodle)): Proyecto original que inspiró la idea, estructura del JSON y flujo de trabajo para el control de streams de torneos.
+- **[Shieldbreakers-StreamControl-setup](https://github.com/MiggL/Shieldbreakers-StreamControl-setup)** (por [MiggL](https://github.com/MiggL)): Por las plantillas base de las vistas HTML, los scripts de renderizado y animación con EaselJS/TweenJS y el conjunto de banderas de países (`browserfiles/images/GoSquared/`).
+
+---
+
 ## Licencia
 
 Distribuido bajo la licencia [GNU General Public License v3.0](LICENSE).
