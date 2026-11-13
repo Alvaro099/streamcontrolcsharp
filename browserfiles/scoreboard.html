@@ -1,0 +1,88 @@
+<!--
+  Copyright 2018, 2019, 2020 Miguel Müller
+
+  This file is part of Shieldbreakers-StreamControl-setup.
+
+  Shieldbreakers-StreamControl-setup is free software: you can redistribute it
+  and/or modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Shieldbreakers-StreamControl-setup is distributed in the hope that it will be
+  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+  Public License for more details.
+
+  You should have received a copy of the GNU General Public License along with
+  Shieldbreakers-StreamControl-setup.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <script src="js/easeljs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/tweenjs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/countries.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/scoreboard-updater.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+      const FONT_COLOR = "#FFFFFF";
+      const FONTRG_COLOR = "#FFFFFF";
+      const TAG_COLOR = "#FFFFFF";
+      
+      const NAME1_X = 430;
+      const NAME1_Y = 10;
+	  const NAME2_X = 1500;
+      const NAME2_Y = 10;
+      const NAME_MAX_WIDTH = 255;
+      const NAME_FONT_SIZE = 45;
+      const TEAM_MAX_WIDTH = 100;
+      
+	  const CHAR_X = 610;
+      const CHAR_Y = 0;
+	  
+	  const TEAM1_X = 330;
+      const TEAM1_Y = 10;
+	  
+	  const TEAM2_X = 1450;
+      const TEAM2_Y = 10;
+      
+      const FLAG_X = 1700;
+      const FLAG_Y = 11;
+      const FLAG_WIDTH = 50;
+      const FLAG_PATH = "images/GoSquared/cropped/iso/64shiny/";
+
+      function init() {
+        const board = new createjs.Container();
+
+        // Fondo opcional: agrega tu PNG en images/ y descomenta estas líneas.
+        // scoreboard = new createjs.Bitmap("images/MI FONDO.png");
+        // scoreboard.regX = 0;
+        // scoreboard.regY = 0;
+        // board.addChild(scoreboard);
+
+        board.addChild(newDynText("pName1", NAME1_X, NAME1_Y, NAME_MAX_WIDTH, NAME_FONT_SIZE, FONT_COLOR));
+        board.addChild(newDynText("pName2", NAME2_X, NAME2_Y, NAME_MAX_WIDTH, NAME_FONT_SIZE, FONT_COLOR));
+        
+		board.addChild(newDynText("p1Team", TEAM1_X, TEAM1_Y, TEAM_MAX_WIDTH, NAME_FONT_SIZE, TAG_COLOR));
+        board.addChild(newDynText("p2Team", TEAM2_X, TEAM2_Y, TEAM_MAX_WIDTH, NAME_FONT_SIZE, TAG_COLOR));
+        
+        board.addChild(newDynImage("pCountry1", FLAG_X, FLAG_Y, FLAG_PATH));
+        board.addChild(newMirroredDynImage("pCountry2", "pCountry1"));
+
+        board.addChild(newDynText("pScore1", SCOREgbfri_X, SCOREgbfri_Y, SCORE_MAX_WIDTH, SCOREgbfri_FONT_SIZE, FONT_COLOR));
+        board.addChild(newMirroredDynText("pScore2", "pScore1"));
+
+        board.addChild(newDynText("round", ROUNDB_X, ROUNDgb_Y, ROUND_MAX_WIDTH, ROUNDgb_FONT_SIZE, FONT_COLOR));
+		
+		board.addChild(newDynText("textbottom", textbottom_X, textbottomkof_Y, textbottom_MAX_WIDTH, textbottom_FONT_SIZE, FONTRG_COLOR));
+        
+        createScoreboard(board);
+      }
+    </script>
+  </head>
+  <body onLoad="init()" style="margin:0px;">
+    <canvas id="myCanvas" width="1920" height="1080">
+      canvas
+    </canvas>
+  </body>
+</html>

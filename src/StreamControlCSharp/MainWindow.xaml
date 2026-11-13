@@ -1,0 +1,995 @@
+<Window x:Class="StreamControlCSharp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:StreamControlCSharp.ViewModels"
+        mc:Ignorable="d"
+        Title="StreamControlC#" Height="700" Width="1060"
+        MinHeight="620" MinWidth="960"
+        WindowStartupLocation="CenterScreen"
+        Background="#0D0E11" Foreground="#F8FAFC"
+        FontFamily="Segoe UI">
+
+    <Window.DataContext>
+        <vm:MainViewModel x:Name="ViewModel" />
+    </Window.DataContext>
+
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Ctrl" Key="S" Command="{Binding SaveCommand}" />
+        <KeyBinding Key="F1" Command="{Binding ScoreP1PlusCommand}" />
+        <KeyBinding Modifiers="Shift" Key="F1" Command="{Binding ScoreP1MinusCommand}" />
+        <KeyBinding Key="F2" Command="{Binding ScoreP2PlusCommand}" />
+        <KeyBinding Modifiers="Shift" Key="F2" Command="{Binding ScoreP2MinusCommand}" />
+        <KeyBinding Key="F5" Command="{Binding SwapPlayersCommand}" />
+        <KeyBinding Key="F6" Command="{Binding ResetScoresCommand}" />
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <!-- Broadcast Titanium & Obsidian Theme -->
+        <SolidColorBrush x:Key="BgDark" Color="#0D0E11"/>
+        <SolidColorBrush x:Key="HeaderBg" Color="#121418"/>
+        <SolidColorBrush x:Key="HeaderBorder" Color="#1E222A"/>
+        <SolidColorBrush x:Key="CardBg" Color="#16181D"/>
+        <SolidColorBrush x:Key="CardBorder" Color="#252833"/>
+        <SolidColorBrush x:Key="InputBg" Color="#101216"/>
+        <SolidColorBrush x:Key="InputBorder" Color="#21242E"/>
+        <SolidColorBrush x:Key="AccentBlue" Color="#38BDF8"/>
+        <SolidColorBrush x:Key="AccentRed" Color="#FB7185"/>
+        <SolidColorBrush x:Key="AccentGreen" Color="#34D399"/>
+        <SolidColorBrush x:Key="AccentPurple" Color="#818CF8"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#64748B"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#F8FAFC"/>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource InputBg}"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- ===================== ComboBox (tema oscuro del proyecto) =====================
+             La plantilla por defecto de Windows pinta el cuadro de edición y el desplegable
+             de blanco, así que el texto blanco del ComboBox quedaba invisible al escribir.
+             Estas plantillas mantienen cerrado, edición, flecha y lista con la paleta. -->
+
+        <!-- Fondo + flecha del combo (el toggle también abre/cierra la lista) -->
+        <ControlTemplate x:Key="ComboBoxToggleTemplate" TargetType="ToggleButton">
+            <Border x:Name="ToggleBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    SnapsToDevicePixels="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="24"/>
+                    </Grid.ColumnDefinitions>
+                    <Path Grid.Column="1"
+                          Data="M 0 0 L 4 4 L 8 0 Z"
+                          Fill="#94A3B8"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="ToggleBorder" Property="Background" Value="#161A21"/>
+                    <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="#3A4050"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="ToggleBorder" Property="BorderBrush" Value="{StaticResource AccentPurple}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter TargetName="ToggleBorder" Property="Opacity" Value="0.45"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- Cuadro de texto que se usa cuando el combo es editable -->
+        <Style x:Key="ComboBoxEditableTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CaretBrush" Value="{StaticResource AccentBlue}"/>
+            <Setter Property="SelectionBrush" Value="#4338CA"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="False"
+                                          VerticalAlignment="Center"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Barra de scroll del desplegable (la de Windows es blanca y rompe el tema) -->
+        <Style x:Key="ComboScrollBarStyle" TargetType="ScrollBar">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#3A4050" CornerRadius="4" Margin="1,2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource InputBg}"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="700"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid x:Name="Root">
+                            <ToggleButton x:Name="ToggleButton"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          Template="{StaticResource ComboBoxToggleTemplate}"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
+
+                            <!-- Texto del ítem seleccionado (combo cerrado, no editable) -->
+                            <ContentPresenter x:Name="ContentSite"
+                                              Margin="9,0,27,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                              TextElement.Foreground="#FFFFFF"/>
+
+                            <!-- Texto editable: fondo oscuro, texto claro y cursor azul.
+                                 El Text va enlazado al ComboBox en TwoWay para que muestre el
+                                 valor actual (ronda/texto) y devuelva lo que se escribe. -->
+                            <TextBox x:Name="PART_EditableTextBox"
+                                     Style="{StaticResource ComboBoxEditableTextBoxStyle}"
+                                     Margin="1,1,25,1"
+                                     Focusable="True"
+                                     Visibility="Collapsed"
+                                     IsReadOnly="{TemplateBinding IsReadOnly}"
+                                     Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade"
+                                   VerticalOffset="3">
+                                <Border x:Name="DropDownBorder"
+                                        Background="{StaticResource CardBg}"
+                                        BorderBrush="{StaticResource CardBorder}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="3"
+                                        MinWidth="{TemplateBinding ActualWidth}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                        SnapsToDevicePixels="True">
+                                    <ScrollViewer SnapsToDevicePixels="True"
+                                                  Background="Transparent"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  VerticalScrollBarVisibility="Auto">
+                                        <ScrollViewer.Resources>
+                                            <Style TargetType="ScrollBar" BasedOn="{StaticResource ComboScrollBarStyle}"/>
+                                        </ScrollViewer.Resources>
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEditable" Value="True">
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="ContentSite" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{StaticResource AccentPurple}"/>
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="ToggleButton" Property="BorderBrush" Value="{StaticResource AccentPurple}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <!-- Sin texto no mostramos un tooltip vacío -->
+                <Trigger Property="Text" Value="">
+                    <Setter Property="ToolTip" Value="{x:Null}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Ítems del desplegable: fondo oscuro, hover y selección con acento -->
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#E2E8F0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Margin="1"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#1E2129"/>
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#2B2F3B"/>
+                                <Setter Property="Foreground" Value="#F8FAFC"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#312E81"/>
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#4338CA"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ItemBorder" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#1E2129"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#2B2F3B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Border" Background="Transparent" BorderThickness="0,0,0,2" BorderBrush="Transparent" Margin="0,0,8,0" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AccentPurple}"/>
+                                <Setter Property="Foreground" Value="#F8FAFC"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#CBD5E1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Ficha de un set dentro de la tarjeta "Sets del torneo por fase" -->
+        <Style x:Key="SetChipStyle" TargetType="Button">
+            <Setter Property="Background" Value="#14161B"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#262A35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Width" Value="292"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chip"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chip" Property="BorderBrush" Value="{StaticResource AccentPurple}"/>
+                                <Setter TargetName="Chip" Property="Background" Value="#1B2030"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chip" Property="Background" Value="#232A3D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header (Clean Bar with Save Button) -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderBg}" BorderBrush="{StaticResource HeaderBorder}" BorderThickness="0,0,0,1" Padding="18,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding SaveCommand}" Background="#4338CA" BorderBrush="#6366F1" Foreground="#FFFFFF" BorderThickness="1" Padding="16,7" FontWeight="Bold">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="GUARDAR EN OBS" Margin="0,0,6,0"/>
+                            <TextBlock Text="(Ctrl+S)" FontSize="11" Foreground="#C7D2FE" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content with Tabs -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="14,10">
+
+            <!-- TAB 1: SCOREBOARD -->
+            <TabItem Header="SCOREBOARD">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="4">
+
+                        <!-- Main Scoreboard Card -->
+                        <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Player 1 Section (Cobalt Precision) -->
+                                <Border Grid.Column="0" Background="#12151B" BorderBrush="#1E2D45" BorderThickness="1" CornerRadius="6" Padding="14">
+                                    <StackPanel>
+                                        <TextBlock Text="JUGADOR 1" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" FontSize="13" Margin="0,0,0,10"/>
+                                        
+                                        <TextBlock Text="Tag / Sponsor" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.P1Team, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
+
+                                        <TextBlock Text="Nombre de Jugador" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.PName1, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="Bold" Margin="0,2,0,8"/>
+
+                                        <TextBlock Text="País (Bandera)" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.PCountry1, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,14"/>
+
+                                        <!-- Score Controls Header -->
+                                        <TextBlock Text="MARCADOR" FontWeight="SemiBold" Foreground="{StaticResource AccentBlue}" FontSize="11" Margin="0,0,0,4"/>
+                                        
+                                        <!-- Main Score Row: [-] [SCORE] [+1 PUNTO] -->
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="40"/>
+                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Grid.Column="0" Command="{Binding ScoreP1MinusCommand}" Content="-" Height="44" FontSize="20" Background="#181B22" BorderBrush="#252A36" ToolTip="Restar 1 punto (Shift+F1)"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.PScore1, UpdateSourceTrigger=PropertyChanged}" Height="44" FontSize="26" FontWeight="Bold" TextAlignment="Center" VerticalContentAlignment="Center" Background="#0E1014" BorderBrush="#1E2D45" Margin="6,0"/>
+                                            <Button Grid.Column="2" Command="{Binding ScoreP1PlusCommand}" Height="44" Background="#1D4ED8" BorderBrush="#2563EB" Foreground="#FFFFFF" FontWeight="Bold" ToolTip="Sumar 1 punto (F1)">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <TextBlock Text="+1 PUNTO" FontSize="13" FontWeight="Bold"/>
+                                                    <TextBlock Text=" (F1)" FontSize="11" Foreground="#93C5FD" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+
+                                        <!-- Quick Presets Row: [0] [1] [2] [3] -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="Rápido:" Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <Button Command="{Binding SetScoreP1Command}" CommandParameter="0" Content="0" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                            <Button Command="{Binding SetScoreP1Command}" CommandParameter="1" Content="1" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                            <Button Command="{Binding SetScoreP1Command}" CommandParameter="2" Content="2" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                            <Button Command="{Binding SetScoreP1Command}" CommandParameter="3" Content="3" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Center Actions (Swap / Round / Reset) -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8,0">
+                                    <Button Command="{Binding SwapPlayersCommand}" Height="40" Margin="0,0,0,10" Background="#1B1E26" BorderBrush="#3B4252" ToolTip="Intercambiar Jugador 1 y 2 (F5)">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="⇄ SWAP" FontWeight="Bold" FontSize="12"/>
+                                            <TextBlock Text=" (F5)" FontSize="10" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Command="{Binding ResetScoresCommand}" Height="34" Margin="0,0,0,16" Background="#241B1C" BorderBrush="#4A2628" Foreground="#FCA5A5" ToolTip="Reiniciar puntajes a 0 (F6)">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="0 - 0 RESET" FontWeight="Bold" FontSize="11"/>
+                                            <TextBlock Text=" (F6)" FontSize="10" Foreground="#F87171" VerticalAlignment="Center" Margin="3,0,0,0"/>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <TextBlock Text="Ronda Actual" Foreground="{StaticResource TextMuted}" FontSize="11" HorizontalAlignment="Center"/>
+                                    <ComboBox ItemsSource="{Binding Rounds}" Text="{Binding Data.Round, UpdateSourceTrigger=PropertyChanged}" IsEditable="True"  IsTextSearchEnabled="True" 
+          StaysOpenOnEdit="True" Width="136" Margin="0,2,0,10"/>
+
+                                    <TextBlock Text="Texto Abajo" Foreground="{StaticResource TextMuted}" FontSize="11" HorizontalAlignment="Center"/>
+                                    <ComboBox ItemsSource="{Binding TextBottomOptions}" Text="{Binding Data.TextBottom, UpdateSourceTrigger=PropertyChanged}" IsEditable="True"  IsTextSearchEnabled="True" 
+          StaysOpenOnEdit="True" Width="136" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <!-- Player 2 Section (Ruby Precision) -->
+                                <Border Grid.Column="2" Background="#171215" BorderBrush="#451E28" BorderThickness="1" CornerRadius="6" Padding="14">
+                                    <StackPanel>
+                                        <TextBlock Text="JUGADOR 2" FontWeight="Bold" Foreground="{StaticResource AccentRed}" FontSize="13" Margin="0,0,0,10"/>
+                                        
+                                        <TextBlock Text="Tag / Sponsor" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.P2Team, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,8"/>
+
+                                        <TextBlock Text="Nombre de Jugador" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.PName2, UpdateSourceTrigger=PropertyChanged}" FontSize="15" FontWeight="Bold" Margin="0,2,0,8"/>
+
+                                        <TextBlock Text="País (Bandera)" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.PCountry2, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,14"/>
+
+                                        <!-- Score Controls Header -->
+                                        <TextBlock Text="MARCADOR" FontWeight="SemiBold" Foreground="{StaticResource AccentRed}" FontSize="11" Margin="0,0,0,4"/>
+                                        
+                                        <!-- Main Score Row: [-] [SCORE] [+1 PUNTO] -->
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="40"/>
+                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Grid.Column="0" Command="{Binding ScoreP2MinusCommand}" Content="-" Height="44" FontSize="20" Background="#181B22" BorderBrush="#252A36" ToolTip="Restar 1 punto (Shift+F2)"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.PScore2, UpdateSourceTrigger=PropertyChanged}" Height="44" FontSize="26" FontWeight="Bold" TextAlignment="Center" VerticalContentAlignment="Center" Background="#0E1014" BorderBrush="#451E28" Margin="6,0"/>
+                                            <Button Grid.Column="2" Command="{Binding ScoreP2PlusCommand}" Height="44" Background="#BE123C" BorderBrush="#E11D48" Foreground="#FFFFFF" FontWeight="Bold" ToolTip="Sumar 1 punto (F2)">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <TextBlock Text="+1 PUNTO" FontSize="13" FontWeight="Bold"/>
+                                                    <TextBlock Text=" (F2)" FontSize="11" Foreground="#FDA4AF" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+
+                                        <!-- Quick Presets Row: [0] [1] [2] [3] -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <TextBlock Text="Rápido:" Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                            <Button Command="{Binding SetScoreP2Command}" CommandParameter="0" Content="0" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                            <Button Command="{Binding SetScoreP2Command}" CommandParameter="1" Content="1" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                            <Button Command="{Binding SetScoreP2Command}" CommandParameter="2" Content="2" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                            <Button Command="{Binding SetScoreP2Command}" CommandParameter="3" Content="3" Width="34" Height="26" FontSize="11" Padding="0" Margin="2,0" Background="#161820" BorderBrush="#282C38"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Commentators Section Card -->
+                        <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="🎙 COMENTARISTAS" FontWeight="Bold" FontSize="13" Foreground="#E2E8F0" Margin="0,0,0,12"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Comm 1 -->
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Comentarista 1" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <ComboBox ItemsSource="{Binding Commentators}" SelectedItem="{Binding SelectedComm1}" Text="{Binding Data.Comm1Name, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsTextSearchEnabled="True" 
+          StaysOpenOnEdit="True" Margin="0,2,0,6"/>
+                                        <TextBlock Text="Twitter / X" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.Comm1Twit, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Comm 2 -->
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Comentarista 2" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <ComboBox ItemsSource="{Binding Commentators}" SelectedItem="{Binding SelectedComm2}" Text="{Binding Data.Comm2Name, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsTextSearchEnabled="True" 
+          StaysOpenOnEdit="True" Margin="0,2,0,6"/>
+                                        <TextBlock Text="Twitter / X" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.Comm2Twit, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Comm 3 -->
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="Comentarista 3" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <ComboBox ItemsSource="{Binding Commentators}" SelectedItem="{Binding SelectedComm3}" Text="{Binding Data.Comm3Name, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsTextSearchEnabled="True" 
+          StaysOpenOnEdit="True" Margin="0,2,0,6"/>
+                                        <TextBlock Text="Twitter / X" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Data.Comm3Twit, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 2: Top 8 Bracket (Formato Árbol Original de 4 Columnas) -->
+            <TabItem Header="Top 8 Bracket">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <!-- Row 0: Top Action Bar -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Row 1: Winners Bracket (4 Columns) -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Row 2: Losers Bracket (4 Columns) -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Row 3: Footer (Texto Abajo / CLEAN ALL) -->
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 0: Top Action Bar -->
+                        <Border Grid.Row="0" Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Cuadro Top 8" FontWeight="Bold" FontSize="13" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Formato de llaves de torneo. Puedes editar a mano o sincronizar desde Start.gg." Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Command="{Binding SyncTop8Command}" Background="#312E81" BorderBrush="#4338CA" Foreground="#E0E7FF" Content="⚡ Sincronizar Top 8 Start.gg" Padding="12,5" FontSize="12"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Row 1: Winners Bracket (4 Columns) -->
+                        <Grid Grid.Row="1" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- COL 0: Winners Semis (WS 1 & WS 2) -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Winners Semis" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" FontSize="12" Margin="4,0,0,4"/>
+                                
+                                <!-- WS 1 -->
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ws1p1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ws1p1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ws1p2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ws1p2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- WS 2 -->
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ws2p1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ws2p1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ws2p2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ws2p2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- COL 1: Winners Finals - Ft3 -->
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="Winners Finals - Ft3" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" FontSize="12" Margin="4,0,0,4"/>
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Wfp1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Wfp1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Wfp2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Wfp2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- COL 2: Grand Final - Ft3 -->
+                            <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                                <TextBlock Text="Grand Final - Ft3" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" FontSize="12" Margin="4,0,0,4"/>
+                                <Border Background="#121816" BorderBrush="#164E3E" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Gfp1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Gfp1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Gfp2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Gfp2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- COL 3: Grand Final Reset - Ft3 -->
+                            <StackPanel Grid.Column="6" VerticalAlignment="Center">
+                                <TextBlock Text="Grand Final Reset - Ft3" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" FontSize="12" Margin="4,0,0,4"/>
+                                <Border Background="#121816" BorderBrush="#164E3E" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Gfrp1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Gfrp1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Gfrp2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Gfrp2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Row 2: Losers Bracket (4 Columns) -->
+                        <Grid Grid.Row="2" Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- COL 0: Losers Top 8 (LTOP8 1 & LTOP8 2) -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Losers Top 8" FontWeight="Bold" Foreground="{StaticResource AccentRed}" FontSize="12" Margin="4,0,0,4"/>
+                                
+                                <!-- LTop8 1 -->
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ltop81p1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ltop81p1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ltop81p2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ltop81p2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- LTop8 2 -->
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ltop82p1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ltop82p1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Ltop82p2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Ltop82p2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- COL 1: Losers Quarters (LQ 1 & LQ 2) -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Losers Quarters" FontWeight="Bold" Foreground="{StaticResource AccentRed}" FontSize="12" Margin="4,0,0,4"/>
+                                
+                                <!-- LQ 1 -->
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lq1p1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lq1p1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lq1p2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lq1p2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- LQ 2 -->
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lq2p1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lq2p1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lq2p2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lq2p2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- COL 2: Losers Semis (LSP) -->
+                            <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                                <TextBlock Text="Losers Semis" FontWeight="Bold" Foreground="{StaticResource AccentRed}" FontSize="12" Margin="4,0,0,4"/>
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lsp1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lsp1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lsp2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lsp2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- COL 3: Losers Finals - Ft3 (LFP) -->
+                            <StackPanel Grid.Column="6" VerticalAlignment="Center">
+                                <TextBlock Text="Losers Finals - Ft3" FontWeight="Bold" Foreground="{StaticResource AccentRed}" FontSize="12" Margin="4,0,0,4"/>
+                                <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,3">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lfp1, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lfp1s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions>
+                                            <TextBox Text="{Binding Data.Lfp2, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Padding="4,2"/>
+                                            <TextBox Grid.Column="1" Text="{Binding Data.Lfp2s, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" FontWeight="Bold" FontSize="12" Padding="2,2" Margin="3,0,0,0"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Row 3: Bottom Footer (Texto Abajo / CLEAN ALL) -->
+                        <Border Grid.Row="3" Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="14,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="340"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Texto Abajo:" Foreground="{StaticResource TextMuted}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <TextBox Grid.Column="1" Text="{Binding Data.TOP8Text, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" FontSize="13"/>
+                                
+                                <Button Grid.Column="3" Command="{Binding ClearBracketCommand}" Content="CLEAN ALL" Background="#7F1D1D" BorderBrush="#991B1B" Foreground="#FCA5A5" FontWeight="Bold" Padding="24,8" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 3: Start.gg -->
+            <TabItem Header="Start.gg">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="4">
+
+                        <!-- API Settings Card -->
+                        <Border Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="Configuración de Start.gg API" FontWeight="Bold" FontSize="14" Foreground="#F8FAFC" Margin="0,0,0,4"/>
+                                <TextBlock Text="Conecta tu torneo directamente con la API GraphQL de Start.gg." Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,0,0,12"/>
+
+                                <TextBlock Text="Start.gg Personal API Token" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                <TextBox Text="{Binding Settings.StartGgToken, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" Margin="0,2,0,10"/>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Slug o Link del Torneo (ej: torneo-semanal-ejemplo-42)" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Settings.TournamentSlug, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Nombre del Canal de Stream (para Stream Queue, ej: mi-canal)" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBox Text="{Binding Settings.StreamName, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                    <CheckBox IsChecked="{Binding Settings.AutoSyncEnabled}" Content="Auto-Sincronizar pelea actual en vivo cada 15s" Foreground="#F8FAFC" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                    <Button Command="{Binding SyncCurrentMatchCommand}" Content="⚡ Sincronizar Match Actual Ahora" Background="#312E81" BorderBrush="#4338CA" Foreground="#E0E7FF"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Tournament Sets by Phase Card -->
+                        <Border x:Name="TournamentSetsCard" Background="{StaticResource CardBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,14,0,0">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Todos los Sets del Torneo por Fase" FontWeight="Bold" FontSize="14" Foreground="#F8FAFC"/>
+                                        <TextBlock Text="Cada fase creada en start.gg con todas sus peleas. Clic en un set para cargarlo al marcador." Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TournamentSetsSummary}" Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <Button Command="{Binding LoadTournamentSetsCommand}" Content="🔄 Cargar Sets por Fase" Background="#1E2129" BorderBrush="#2B2F3B"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Text="Configura el token y el slug del torneo y presiona «Cargar Sets por Fase»."
+                                           Foreground="{StaticResource TextMuted}" FontSize="11" Margin="0,2,0,0"
+                                           Visibility="{Binding PhasesEmptyVisibility}"/>
+
+                                <ItemsControl ItemsSource="{Binding TournamentPhases}" Visibility="{Binding PhasesListVisibility}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource InputBg}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                                                <StackPanel>
+                                                    <Grid Margin="0,0,0,10">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Background="#1E2129" CornerRadius="4" Padding="7,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                            <TextBlock Text="{Binding OrderLabel}" Foreground="{StaticResource AccentPurple}" FontSize="10" FontWeight="Bold"/>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding PhaseName}" FontWeight="Bold" FontSize="13" Foreground="#F8FAFC" TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding EventName}" Foreground="{StaticResource TextMuted}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Summary}" Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{Binding Error}" Foreground="#F87171" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8"
+                                                               Visibility="{Binding ErrorVisibility}"/>
+
+                                                    <ItemsControl ItemsSource="{Binding Sets}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <WrapPanel/>
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Button Style="{StaticResource SetChipStyle}"
+                                                                        Command="{Binding DataContext.LoadSetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                        CommandParameter="{Binding}"
+                                                                        ToolTip="{Binding TooltipText}">
+                                                                    <StackPanel>
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock Text="{Binding RoundText}" Foreground="{StaticResource AccentPurple}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock Grid.Column="1" Text="{Binding StateLabel}" Foreground="{StaticResource TextMuted}" FontSize="10" Margin="6,0,0,0"/>
+                                                                        </Grid>
+                                                                        <Grid Margin="0,4,0,0">
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*"/>
+                                                                                <ColumnDefinition Width="Auto"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <StackPanel>
+                                                                                <TextBlock Text="{Binding P1Display}" Foreground="{StaticResource AccentBlue}" FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                                                                <TextBlock Text="{Binding P2Display}" Foreground="{StaticResource AccentRed}" FontSize="12" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                                                                            </StackPanel>
+                                                                            <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                                                <TextBlock Text="{Binding P1Score}" Foreground="#F8FAFC" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                                                                <TextBlock Text="{Binding P2Score}" Foreground="#F8FAFC" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                                                            </StackPanel>
+                                                                        </Grid>
+                                                                    </StackPanel>
+                                                                </Button>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <!-- Bottom Status Bar (Hardware Console Meter) -->
+        <Border Grid.Row="2" Background="#0A0B0E" BorderBrush="#1C1F26" BorderThickness="0,1,0,0" Padding="16,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Estado: " Foreground="{StaticResource TextMuted}" FontSize="12"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#E2E8F0" FontWeight="SemiBold" FontSize="12"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="Salida: browserfiles/streamcontrol.json (UTF-8)" Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

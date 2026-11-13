@@ -1,0 +1,84 @@
+<!--
+  Copyright 2018, 2019, 2020 Miguel Müller
+
+  This file is part of Shieldbreakers-StreamControl-setup.
+
+  Shieldbreakers-StreamControl-setup is free software: you can redistribute it
+  and/or modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Shieldbreakers-StreamControl-setup is distributed in the hope that it will be
+  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+  Public License for more details.
+
+  You should have received a copy of the GNU General Public License along with
+  Shieldbreakers-StreamControl-setup.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!-- Sin fondo: si quieres uno, agrega tu PNG en images/ y dibújalo antes de los newMatch().-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <script src="js/easeljs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/tweenjs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/countries.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/bracket-updater.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+
+      const maxNameWidth = 280;
+      const maxScoreWidth = 50;
+      const fontsize = 45;
+      const fontcolor = "#FFFFFF";
+      const losecolor = "#7d7d7c";
+      var stage;
+
+      function newMatch(matchtag, x, y) {
+        const match = new createjs.Container();
+        match.x = x;
+        match.y = y;
+
+        //Preserve this order and naming for everything else to work. (No longer necessary?)
+        match.addChild(newDynText(`${matchtag}p1`, 178, 0, maxNameWidth, fontsize, fontcolor));
+        match.addChild(newDynText(`${matchtag}p1s`, 0, 0, maxScoreWidth, fontsize, fontcolor));
+        match.addChild(newDynText(`${matchtag}p2`, 178, 70, maxNameWidth, fontsize, fontcolor));
+        match.addChild(newDynText(`${matchtag}p2s`, 0, 70, maxScoreWidth, fontsize, fontcolor));
+        return match;
+      }
+
+      function init() {
+        this.window.setInterval(pollHandler, 250);
+
+        stage = new createjs.Stage("myCanvas");
+        const board = new createjs.Container();
+        
+        board.addChild(newMatch("ws1", 107, 148));
+        board.addChild(newMatch("ws2", 107, 348));
+        board.addChild(newMatch("wf", 568, 248));
+        board.addChild(newMatch("ltop81", 107, 608));
+        board.addChild(newMatch("ltop82", 107, 808));
+        board.addChild(newMatch("lq1", 568, 608));
+        board.addChild(newMatch("lq2", 568, 808));
+        board.addChild(newMatch("ls", 1029, 708));
+        board.addChild(newMatch("lf", 1490, 638));
+        board.addChild(newMatch("gf", 1029, 318));
+		board.addChild(newMatch("gfr", 1529, 318));
+		board.addChild(newMatch("Cham", 1429, 748));
+
+        stage.addChild(board);
+
+        createjs.Ticker.addEventListener("tick", enterFrame);
+        createjs.Ticker.framerate = 60;
+
+        stage.update();
+      }
+    </script>
+  </head>
+  <body onLoad="init()" style="margin:0px;">
+    <canvas id="myCanvas" width="1920" height="1080">
+      canvas
+    </canvas>
+  </body>
+</html>

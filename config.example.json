@@ -1,0 +1,8 @@
+{
+  "StartGgToken": "",
+  "TournamentSlug": "",
+  "StreamName": "",
+  "AutoSyncEnabled": false,
+  "AutoSyncIntervalSeconds": 15,
+  "OutputDirectory": "browserfiles"
+}

@@ -1,0 +1,69 @@
+<!--
+  Copyright 2019, 2020 Miguel Müller
+
+  This file is part of Shieldbreakers-StreamControl-setup.
+
+  Shieldbreakers-StreamControl-setup is free software: you can redistribute it
+  and/or modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Shieldbreakers-StreamControl-setup is distributed in the hope that it will be
+  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+  Public License for more details.
+
+  You should have received a copy of the GNU General Public License along with
+  Shieldbreakers-StreamControl-setup.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <script src="js/easeljs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/tweenjs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/scoreboard-updater.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+      const FONT_COLOR = "#FFFFFF";
+	  const FONT_TYPE = "Bebas Neue";
+      
+      const COMM1_X = 100;
+      const COMM_Y = 745;
+	  const COMM2_X = 1600;
+      const TWIT1_X = 260;
+      const TWIT1_Y = 820;
+	  const TWIT2_X = 1780;
+      const TWIT2_Y = 820;
+      const NAME_MAX_WIDTH = 390;
+      const TWIT_MAX_WIDTH = 338;
+      const NAME_FONT_SIZE = 80;
+      const TWIT_FONT_SIZE = 28;
+
+      function init() {
+        const board = new createjs.Container();
+
+        // Fondo opcional: agrega tu PNG en images/ y descomenta estas líneas.
+        // scoreboard = new createjs.Bitmap("images/MI FONDO.png");
+        // scoreboard.regX = 0;
+        // scoreboard.regY = 0;
+        // board.addChild(scoreboard);
+
+        board.addChild(newDynText("comm1name", COMM1_X, COMM_Y, NAME_MAX_WIDTH, NAME_FONT_SIZE, FONT_COLOR, FONT_TYPE, "right"));
+        //board.addChild(newMirroredDynText("comm2name", "comm1name"));
+		board.addChild(newDynText("comm2name", COMM2_X, COMM_Y, NAME_MAX_WIDTH, NAME_FONT_SIZE, FONT_COLOR, FONT_TYPE, "right"));
+        
+        
+        board.addChild(newDynText("comm1twit", TWIT1_X, TWIT1_Y, TWIT_MAX_WIDTH, TWIT_FONT_SIZE, FONT_COLOR, "right"));
+		board.addChild(newDynText("comm2twit", TWIT2_X, TWIT2_Y, TWIT_MAX_WIDTH, TWIT_FONT_SIZE, FONT_COLOR, "right"));
+       
+        
+        createScoreboard(board);
+      }
+    </script>
+  </head>
+  <body onLoad="init()" style="margin:0px;">
+    <canvas id="myCanvas" width="1920" height="1080">
+      canvas
+    </canvas>
+  </body>
+</html>

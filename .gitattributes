@@ -1,2 +1,19 @@
-# Auto detect text files and perform LF normalization
 * text=auto
+*.bat text eol=crlf
+*.cs text
+*.xaml text
+*.html text
+*.js text
+*.css text
+*.json text
+*.md text
+
+*.exe binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ttf binary
+*.otf binary
+*.mp3 binary
+*.mp4 binary

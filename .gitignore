@@ -1,0 +1,33 @@
+# Configuración local: contiene el token personal de start.gg.
+# No lo subas nunca. Usa config.example.json como plantilla.
+config.json
+
+# Artefactos de compilación
+src/**/bin/
+src/**/obj/
+publish/
+publish-*/
+publish-debug/
+*.user
+*.suo
+.vs/
+*.pdb
+*-debug.exe
+*debug*.exe
+_run_result.txt
+
+# Editores y herramientas locales
+.vscode/
+.idea/
+.claude/
+.agent/
+.gemini/
+.impeccable/
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Logs
+*.log

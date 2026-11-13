@@ -1,0 +1,50 @@
+<!--
+  Copyright 2018, 2019, 2020 Miguel Müller
+
+  This file is part of Shieldbreakers-StreamControl-setup.
+
+  Shieldbreakers-StreamControl-setup is free software: you can redistribute it
+  and/or modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  Shieldbreakers-StreamControl-setup is distributed in the hope that it will be
+  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+  Public License for more details.
+
+  You should have received a copy of the GNU General Public License along with
+  Shieldbreakers-StreamControl-setup.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <script src="js/easeljs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/tweenjs-2017.10.12.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/countries.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/scoreboard-updater.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+      const FONT_COLOR = "#FFFFFF";
+      
+      function init() {
+        const board = new createjs.Container();
+
+        // Fondo opcional: agrega tu PNG en images/ y descomenta estas líneas.
+        // scoreboard = new createjs.Bitmap("images/MI FONDO.png");
+        // scoreboard.regX = 0;
+        // scoreboard.regY = 0;
+        // board.addChild(scoreboard);
+
+        board.addChild(newDynText("TOP8text", TOP8text_X, TOP8text_Y, TOP8text_MAX_WIDTH, ROUND_FONT_SIZE, FONT_COLOR));
+        
+        createScoreboard(board);
+      }
+    </script>
+  </head>
+  <body onLoad="init()" style="margin:0px;">
+    <canvas id="myCanvas" width="1920" height="1080">
+      canvas
+    </canvas>
+  </body>
+</html>
